@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="/assets/css/searchdiv.css">
+    <link rel="stylesheet" href="/assets/css/sidebar.css">
+    <link rel="stylesheet" href="/assets/css/overlay.css">
+
+    <script src="assets/javascript/searchdiv.js"></script>
+    <script src="assets/javascript/background.js"></script>
+    <script src="assets/javascript/database.js"></script>
+
+
+</head>
+
+<body>
+    <canvas id="background"></canvas>
+
+    <!-- 搜索按钮容器 -->
+    <div class="search-container">
+        <button id="searchButton" class="search-button">
+            <div class="triangle"></div>
+            <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
+        </button>
+
+        <!-- 搜索结果下拉框 -->
+        <div id="searchResults" class="search-results"></div>
+    </div>
+
+    <!-- 左侧展开栏 -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-collapsed-hint">
+            <span>☰</span>
+        </div>
+        <div id="sidebarContent" class="sidebar-content">
+            <h3>文章列表</h3>
+            <div id="articleList" class="article-list"></div>
+        </div>
+    </div>
+
+
+    <!-- 覆盖层 -->
+    <div class="overlay" id="overlay">
+        <iframe src=""></iframe>
+        <button class="close-btn" id="closeOverlayBtn" onclick="close_overlay()">&times;</button>
+    </div>
+
+    <script src="assets/javascript/overlay.js"></script>
+</body>
+
+</html>
