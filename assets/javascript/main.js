@@ -36,12 +36,12 @@ async function boot() {
     intro.begin();
 
     try {
-        // 判定节点一：浏览器拉取 marked
-        const marked = await withTimeout(import('./vendor/marked.js'), TIMEOUT);
+        // 发散期硬检查点：浏览器拉取 marked
+        const marked = await withTimeout(import('../vendor/marked.js'), TIMEOUT);
         data.setMarked(marked);
         intro.markedReady();
 
-        // 判定节点二：GitHub API 枚举 + 拉取渲染全部文章
+        // 封边期硬检查点：GitHub API 枚举 + 拉取渲染全部文章
         await withTimeout(data.fetchArticles(), TIMEOUT);
         intro.dataReady();
 

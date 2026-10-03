@@ -29,6 +29,7 @@ function render() {
     const top = wm.getTop();
 
     for (const w of reversed) {
+        const isSearch = w.type === 'search';
         const tab = document.createElement('div');
         tab.className = 'tab' + (top && w.id === top.id ? ' active' : '');
         tab.dataset.id = w.id;
@@ -38,21 +39,30 @@ function render() {
         title.textContent = titleFor(w);
         tab.appendChild(title);
 
-        const closeBtn = document.createElement('span');
-        closeBtn.className = 'tab-close';
-        closeBtn.textContent = '\u00d7';
-        closeBtn.title = '关闭';
-        closeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            wm.close(w.id);
-        });
-        tab.appendChild(closeBtn);
+        // 搜索标签不可关闭：不渲染关闭按钮，右键也不响应关闭
+        if (!isSearch) {
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'tab-close';
+            closeBtn.textContent = '\u00d7';
+            closeBtn.title = '关闭';
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                wm.close(w.id);
+            });
+            tab.appendChild(closeBtn);
+        }
 
-        tab.addEventListener('click', () => wm.focus(w.id));
-        tab.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            wm.close(w.id);
+        tab.addEventListener('click', () => {
+            // 点击当前激活的标签静默
+            if (top && w.id === top.id) return;
+            wm.focus(w.id);
         });
+        if (!isSearch) {
+            tab.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                wm.close(w.id);
+            });
+        }
 
         root.appendChild(tab);
     }

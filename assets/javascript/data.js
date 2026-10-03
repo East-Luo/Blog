@@ -82,7 +82,12 @@ async function listArticles() {
             const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
             return { id, path: item.path, dir, file };
         })
-        .sort((a, b) => a.id.localeCompare(b.id));
+        .sort((a, b) => {
+            const na = parseInt(a.id, 10);
+            const nb = parseInt(b.id, 10);
+            if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+            return a.id.localeCompare(b.id);
+        });
 }
 
 async function loadOne(entry) {

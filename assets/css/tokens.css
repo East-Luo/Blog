@@ -1,5 +1,7 @@
 /* 全局设计令牌：主题色、尺寸、时长都从这里走 */
 :root {
+    color-scheme: dark;
+
     --color-bg: #000;
     --color-fg: #fff;
     --color-error: #ff4444;

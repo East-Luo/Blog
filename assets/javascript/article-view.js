@@ -1,5 +1,5 @@
-// article-view.js —— 文章窗口的 DOM 生命周期：创建、注入、转场、销毁。
-// 文章数据已在引导期全部预加载并渲染，此处只做同步注入，无异步加载。
+// article-view.js —— 文章窗口的 DOM 生命周期：创建、注入、抽屉式转场、销毁。
+// 仅栈顶文章展开为全屏，其余窗口收到底部（视口外），由标签栏切换。
 
 import * as wm from './window-manager.js';
 import * as data from './data.js';
@@ -11,7 +11,7 @@ let prevArticleIds = [];
 function createWindow(id, z) {
     const meta = data.getMeta(id);
     const el = document.createElement('div');
-    el.className = 'article-window entering';
+    el.className = 'article-window';
     el.style.zIndex = z;
     el.innerHTML = `
         <button class="article-close-btn" title="关闭">&times;</button>
@@ -22,13 +22,13 @@ function createWindow(id, z) {
     el.querySelector('.article-close-btn').addEventListener('click', () => wm.close(id));
 
     const content = el.querySelector('.article-content');
-    content.innerHTML = meta ? meta.html : '<p style="color:rgba(255,255,255,0.7)">文章不存在</p>';
+    content.innerHTML = meta ? meta.html : '<p style="color:#666">文章不存在</p>';
 
     windowsRoot.appendChild(el);
     domMap.set(id, { el });
 
-    // 下一帧移除进入态，触发从底部滑入
-    requestAnimationFrame(() => el.classList.remove('entering'));
+    // 下一帧展开（作为新栈顶滑入）
+    requestAnimationFrame(() => el.classList.add('active'));
     return el;
 }
 
@@ -37,7 +37,7 @@ function closeWindow(id) {
     if (!rec) return;
     domMap.delete(id);
     const el = rec.el;
-    el.classList.add('closing');
+    el.classList.remove('active'); // 收到底部
     el.addEventListener('transitionend', () => el.remove(), { once: true });
     // 兜底：极端情况下 transition 不触发也确保移除
     setTimeout(() => el.remove(), 1000);
@@ -56,11 +56,16 @@ function onStackChange(stack) {
         closeWindow(id);
     }
 
-    // 同步 z-index（置顶即改变层叠）
+    // 仅当栈顶是文章时才展开它；栈顶是搜索框或空时，所有文章收到底部
+    const top = stack.length ? stack[stack.length - 1] : null;
+    const topId = top && top.type === 'article' ? top.id : null;
     for (const w of stack) {
         if (w.type !== 'article') continue;
         const rec = domMap.get(w.id);
-        if (rec) rec.el.style.zIndex = w.z;
+        if (rec) {
+            rec.el.style.zIndex = w.z;
+            rec.el.classList.toggle('active', w.id === topId);
+        }
     }
 
     prevArticleIds = articleIds;

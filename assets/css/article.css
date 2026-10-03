@@ -1,19 +1,16 @@
-/* 文章窗口：全屏绝对定位叠放，非激活透明且不可交互 */
+/* 文章窗口：独立于背景 canvas 的暗色阅读风格。
+   配色参考 VS Code Dark+：中性深灰底 + 高可读性浅色文字。 */
 .article-window {
     position: fixed;
     inset: 0;
-    background: var(--color-bg);
+    background: #1e1e1e;
     z-index: 10;
-    /* 进入动画：从底部向上滑入 */
-    transition: transform var(--dur-window) var(--ease-window), opacity var(--dur-window) ease;
-}
-
-.article-window.entering {
+    transition: transform var(--dur-window) var(--ease-window);
     transform: translateY(100%);
 }
 
-.article-window.closing {
-    transform: translateY(100%);
+.article-window.active {
+    transform: translateY(0);
 }
 
 .article-window-body {
@@ -27,9 +24,9 @@
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    color: var(--color-fg);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+    color: #d4d4d4;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -41,67 +38,17 @@
 }
 
 .article-close-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
 }
 
-/* 骨架屏 */
-.article-skeleton {
-    max-width: 720px;
-    margin: 0 auto;
-}
-
-.article-skeleton-line {
-    height: 14px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.12);
-    margin-bottom: 18px;
-    animation: skeleton-pulse 1.2s ease-in-out infinite;
-}
-
-.article-skeleton-line:nth-child(1) {
-    width: 50%;
-    height: 22px;
-    margin-bottom: 30px;
-}
-
-.article-skeleton-line:nth-child(2) {
-    width: 100%;
-}
-
-.article-skeleton-line:nth-child(3) {
-    width: 90%;
-    animation-delay: 0.15s;
-}
-
-.article-skeleton-line:nth-child(4) {
-    width: 95%;
-    animation-delay: 0.3s;
-}
-
-.article-skeleton-line:nth-child(5) {
-    width: 60%;
-    animation-delay: 0.45s;
-}
-
-@keyframes skeleton-pulse {
-
-    0%,
-    100% {
-        opacity: 0.4;
-    }
-
-    50% {
-        opacity: 1;
-    }
-}
-
-/* 文章正文排版：剥离原 HTML 样式后由博客接管 */
+/* 文章正文排版 */
 .article-content {
     max-width: 720px;
     margin: 0 auto;
     line-height: 1.8;
     font-size: 16px;
-    color: var(--color-fg);
+    color: #d4d4d4;
     word-wrap: break-word;
 }
 
@@ -110,6 +57,7 @@
     font-size: 2.2em;
     line-height: 1.2;
     margin: 1em 0 16px;
+    color: #e8e8e8;
 }
 
 .article-content h2 {
@@ -117,6 +65,7 @@
     font-size: 1.6em;
     line-height: 1.2;
     margin: 1.2em 0 14px;
+    color: #e8e8e8;
 }
 
 .article-content h3,
@@ -126,6 +75,7 @@
     font-weight: 600;
     line-height: 1.2;
     margin: 1.2em 0 12px;
+    color: #e8e8e8;
 }
 
 .article-content p {
@@ -133,7 +83,7 @@
 }
 
 .article-content a {
-    color: #6db4f0;
+    color: #3794ff;
 }
 
 .article-content img {
@@ -143,35 +93,37 @@
 .article-content blockquote {
     margin: 16px 0;
     padding: 0 15px;
-    color: rgba(255, 255, 255, 0.65);
-    background: rgba(255, 255, 255, 0.06);
-    border-left: 4px solid rgba(255, 255, 255, 0.3);
+    color: #a8a8a8;
+    background: #2a2a2a;
+    border-left: 4px solid #3c3c3c;
 }
 
 .article-content code {
     font-family: Consolas, Menlo, Courier, monospace;
     font-size: 0.85em;
-    background: rgba(255, 255, 255, 0.12);
+    background: #2d2d2d;
     border-radius: 3px;
     padding: 0.2em 0.4em;
+    color: #d7ba7d;
 }
 
 .article-content pre {
     padding: 1em;
     overflow-x: auto;
-    background: rgba(255, 255, 255, 0.08);
+    background: #161616;
     border-radius: 6px;
 }
 
 .article-content pre code {
     padding: 0;
     background: none;
+    color: #d4d4d4;
 }
 
 .article-content hr {
-    height: 2px;
+    height: 1px;
     margin: 32px 0;
-    background: rgba(255, 255, 255, 0.2);
+    background: #3c3c3c;
     border: 0;
 }
 
@@ -183,6 +135,11 @@
 
 .article-content th,
 .article-content td {
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    border: 1px solid #3c3c3c;
     padding: 6px 13px;
+}
+
+.article-content th {
+    background: #2a2a2a;
+    color: #e8e8e8;
 }

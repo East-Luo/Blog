@@ -8,7 +8,6 @@ const searchWindow = document.getElementById('searchWindow');
 const searchButton = document.getElementById('searchButton');
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
-const triangle = document.querySelector('.triangle');
 
 const HIT_LABELS = {
     id: 'ID',
@@ -40,10 +39,6 @@ function showResults(results) {
         titleEl.className = 'result-title';
         titleEl.textContent = article.title;
 
-        const tagsEl = document.createElement('div');
-        tagsEl.className = 'result-tags';
-        tagsEl.textContent = Array.isArray(article.tags) ? `[${article.tags.join(', ')}]` : '';
-
         item.appendChild(idEl);
         item.appendChild(titleEl);
         if (hit) {
@@ -52,7 +47,6 @@ function showResults(results) {
             hitEl.textContent = HIT_LABELS[hit] || hit;
             item.appendChild(hitEl);
         }
-        item.appendChild(tagsEl);
 
         item.addEventListener('click', () => {
             wm.open(article.id);
@@ -68,14 +62,6 @@ function showResults(results) {
 }
 
 function initSearch() {
-    // 悬停高亮三角形
-    searchButton.addEventListener('mouseenter', () => {
-        if (!searchButton.classList.contains('active')) triangle.style.opacity = '1';
-    });
-    searchButton.addEventListener('mouseleave', () => {
-        if (!searchButton.classList.contains('active')) triangle.style.opacity = '0.7';
-    });
-
     // 点击展开/收起
     searchButton.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -109,10 +95,15 @@ function initSearch() {
         }
     });
 
-    // 跟随栈层叠：搜索窗口的 z 由 wm 分配
+    // 跟随栈层叠：搜索窗口的 z 由 wm 分配；置顶且有文章时显示遮罩
     wm.subscribe((stack) => {
         const w = stack.find((x) => x.id === 'search');
         searchWindow.style.zIndex = w ? String(w.z) : '10';
+
+        const top = stack.length ? stack[stack.length - 1] : null;
+        const hasArticles = stack.some((x) => x.type === 'article');
+        const dimmed = !!(top && top.id === 'search' && hasArticles);
+        searchWindow.classList.toggle('dimmed', dimmed);
     });
 }
 

@@ -1,11 +1,11 @@
 // background.js —— 背景层：加载动画与四面体背景共用同一个 canvas。
 //
-// 加载动画是四阶段演出，两个真实判定节点：
-//   白点 → 三向延伸(第一段) → [marked 就绪] → [数据就绪] → 延伸到底 → 中点连线 → 升维 → 旋转
-// 失败路径：快速补完平面图形，颜色白转红，保持静态并给出重试入口。
+// 三段绘制（点、发散、封边）与两段加载（发散期、封边期）交错：
+//   点 → 发散(随机检查点) → [硬等 marked] → 发散到底(随机)
+//      → 封边(随机检查点) → [硬等数据] → 封边完成(随机) → 升维 → 旋转
+// 每段加载都是"随机检查点 + 硬检查点"，失败路径保持红色静态。
 //
 // 几何衔接：正三角形 + 三条到中心的线，恰好是正四面体在正面视角下的投影。
-// 升维即让第四个顶点从平面里"长出来"，随后开始旋转。
 
 const canvas = document.getElementById('background');
 const ctx = canvas.getContext('2d');
@@ -39,21 +39,28 @@ const DISTANCE = 5;
 const SCALE = (R * (DISTANCE + 1 / 3)) / (R3 * DISTANCE);
 
 // ---------- 状态 ----------
-let state = 'idle'; // idle | point | grow1 | hold | grow2 | link | dimension | rotate | fail
+let state = 'idle'; // idle | point | grow1 | hold1 | grow2 | link1 | hold2 | link2 | dimension | rotate | fail
 let stateStart = 0;
 let rafId = null;
 let markedReadyFlag = false;
 let dataReadyFlag = false;
 
-let spokeT = 0; // 辐条延伸进度 0..1
-let linkT = 0;  // 斜线进度 0..1
+let spokeT = 0; // 辐条（发散）进度 0..1
+let linkT = 0;  // 三角形边（封边）进度 0..1
 let dimT = 0;   // 升维进度 0..1
 let colorT = 0; // 颜色 0=白 1=红（失败用）
 let failSpoke0 = 0;
 let failLink0 = 0;
 
-let grow1Dur = 50;
-let grow2Dur = 50;
+// 各检查点的随机参数（begin 时重新随机）
+let pointDur = 200;
+let growTarget = 0.45;
+let grow1Dur = 200;
+let grow2Dur = 200;
+let linkTarget = 0.45;
+let link1Dur = 200;
+let link2Dur = 200;
+let dimDur = 500;
 
 let onReady = null;
 let onRetry = null;
@@ -100,8 +107,8 @@ function draw2D() {
 
     ctx.lineWidth = 2;
 
-    // 中心白点：point 阶段淡入，辐条生长时缩小消失
-    const dotAlpha = state === 'point' ? Math.min(1, (now() - stateStart) / 200) : 1;
+    // 中心白点：point 阶段淡入，发散生长时缩小消失
+    const dotAlpha = state === 'point' ? Math.min(1, (now() - stateStart) / pointDur) : 1;
     const dotR = 4 * Math.max(0, 1 - spokeT * 5);
     if (dotR > 0.01) {
         ctx.fillStyle = lineColor(0.9 * dotAlpha);
@@ -123,34 +130,17 @@ function draw2D() {
     }
     ctx.stroke();
 
-    // 三条斜线：辐条中点 → 右侧辐条终点（升维时淡出）
+    // 三角形三条边：从顶点向相邻顶点延伸
     if (linkT > 0.001) {
-        ctx.strokeStyle = lineColor(0.5 * (1 - dimT));
-        ctx.beginPath();
-        for (let i = 0; i < 3; i++) {
-            const j = (i + 1) % 3;
-            const m = {
-                x: c.x + (pts[i].x - c.x) * 0.5,
-                y: c.y + (pts[i].y - c.y) * 0.5,
-            };
-            const end = {
-                x: m.x + (pts[j].x - m.x) * linkT,
-                y: m.y + (pts[j].y - m.y) * linkT,
-            };
-            ctx.moveTo(m.x, m.y);
-            ctx.lineTo(end.x, end.y);
-        }
-        ctx.stroke();
-    }
-
-    // 三角形边（升维阶段渐显，取代斜线）
-    if (dimT > 0.001) {
-        ctx.strokeStyle = lineColor(0.9 * dimT);
+        ctx.strokeStyle = lineColor(0.9);
         ctx.beginPath();
         for (let i = 0; i < 3; i++) {
             const j = (i + 1) % 3;
             ctx.moveTo(pts[i].x, pts[i].y);
-            ctx.lineTo(pts[j].x, pts[j].y);
+            ctx.lineTo(
+                pts[i].x + (pts[j].x - pts[i].x) * linkT,
+                pts[i].y + (pts[j].y - pts[i].y) * linkT
+            );
         }
         ctx.stroke();
     }
@@ -223,25 +213,25 @@ function tick() {
 
     switch (state) {
         case 'point':
-            if (t >= 0.2) {
+            if (t >= pointDur / 1000) {
                 state = 'grow1';
                 stateStart = now();
             }
             break;
 
         case 'grow1': {
-            const d = grow1Dur / 1000;
-            spokeT = Math.min(1, t / d) * 0.5;
-            if (t >= d && markedReadyFlag) {
-                spokeT = 0.5;
-                state = 'hold';
+            const p = Math.min(1, t / (grow1Dur / 1000));
+            spokeT = growTarget * easeOut(p);
+            if (p >= 1) {
+                spokeT = growTarget;
+                state = 'hold1';
                 stateStart = now();
             }
             break;
         }
 
-        case 'hold': {
-            if (dataReadyFlag) {
+        case 'hold1': {
+            if (markedReadyFlag) {
                 state = 'grow2';
                 stateStart = now();
             }
@@ -249,20 +239,38 @@ function tick() {
         }
 
         case 'grow2': {
-            const d = grow2Dur / 1000;
-            const p = Math.min(1, t / d);
-            spokeT = 0.5 + 0.5 * easeOut(p);
+            const p = Math.min(1, t / (grow2Dur / 1000));
+            spokeT = growTarget + (1 - growTarget) * easeOut(p);
             if (p >= 1) {
                 spokeT = 1;
-                state = 'link';
+                state = 'link1';
                 stateStart = now();
             }
             break;
         }
 
-        case 'link': {
-            const p = Math.min(1, t / 0.5);
-            linkT = easeInOut(p);
+        case 'link1': {
+            const p = Math.min(1, t / (link1Dur / 1000));
+            linkT = linkTarget * easeOut(p);
+            if (p >= 1) {
+                linkT = linkTarget;
+                state = 'hold2';
+                stateStart = now();
+            }
+            break;
+        }
+
+        case 'hold2': {
+            if (dataReadyFlag) {
+                state = 'link2';
+                stateStart = now();
+            }
+            break;
+        }
+
+        case 'link2': {
+            const p = Math.min(1, t / (link2Dur / 1000));
+            linkT = linkTarget + (1 - linkTarget) * easeOut(p);
             if (p >= 1) {
                 linkT = 1;
                 state = 'dimension';
@@ -272,7 +280,7 @@ function tick() {
         }
 
         case 'dimension': {
-            const p = Math.min(1, t / 0.6);
+            const p = Math.min(1, t / (dimDur / 1000));
             dimT = easeInOut(p);
             if (p >= 1) {
                 dimT = 1;
@@ -354,8 +362,14 @@ export function createIntro({ onReady: ready, onRetry: retry } = {}) {
         begin() {
             state = 'point';
             stateStart = now();
-            grow1Dur = rand(10, 100);
-            grow2Dur = rand(10, 100);
+            pointDur = rand(150, 250);
+            growTarget = rand(0.3, 0.6);
+            grow1Dur = rand(150, 250);
+            grow2Dur = rand(150, 250);
+            linkTarget = rand(0.3, 0.6);
+            link1Dur = rand(150, 250);
+            link2Dur = rand(150, 250);
+            dimDur = rand(400, 600);
             rafId = requestAnimationFrame(tick);
         },
         markedReady() {
