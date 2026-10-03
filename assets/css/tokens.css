@@ -1,0 +1,60 @@
+/* 全局设计令牌：主题色、尺寸、时长都从这里走 */
+:root {
+    --color-bg: #000;
+    --color-fg: #fff;
+    --color-error: #ff4444;
+    --color-glass: rgba(255, 255, 255, 0.2);
+    --color-glass-strong: rgba(255, 255, 255, 0.3);
+
+    --ease-window: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-window: 0.35s;
+    --dur-fade: 0.3s;
+
+    font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+}
+
+#background {
+    position: fixed;
+    inset: 0;
+    display: block;
+}
+
+/* 加载失败标语 */
+.fail-screen {
+    position: fixed;
+    left: 50%;
+    top: calc(50% + 180px);
+    transform: translateX(-50%);
+    text-align: center;
+    color: var(--color-error);
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.fail-screen.show {
+    opacity: 1;
+}
+
+.fail-screen .fail-hint {
+    margin-top: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+}

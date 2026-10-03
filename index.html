@@ -1,55 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Blog</title>
 
-    <link rel="stylesheet" href="/assets/css/searchdiv.css">
-    <link rel="stylesheet" href="/assets/css/sidebar.css">
-    <link rel="stylesheet" href="/assets/css/overlay.css">
-
-    <script src="assets/javascript/searchdiv.js"></script>
-    <script src="assets/javascript/background.js"></script>
-    <script src="assets/javascript/database.js"></script>
-
-
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/sidebar.css">
+    <link rel="stylesheet" href="assets/css/search.css">
+    <link rel="stylesheet" href="assets/css/tabbar.css">
+    <link rel="stylesheet" href="assets/css/article.css">
 </head>
 
 <body>
+    <!-- 底层：背景与加载动画 -->
     <canvas id="background"></canvas>
 
-    <!-- 搜索按钮容器 -->
-    <div class="search-container">
-        <button id="searchButton" class="search-button">
-            <div class="triangle"></div>
-            <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
-        </button>
+    <!-- 中层：文章窗口（window-manager 动态挂载） -->
+    <div id="windows"></div>
 
-        <!-- 搜索结果下拉框 -->
-        <div id="searchResults" class="search-results"></div>
+    <!-- 最高层：搜索框（一个特殊窗口，参与层叠） -->
+    <div id="searchWindow" class="search-window">
+        <div class="search-container">
+            <button id="searchButton" class="search-button">
+                <div class="triangle"></div>
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
+            </button>
+            <div id="searchResults" class="search-results"></div>
+        </div>
     </div>
 
-    <!-- 左侧展开栏 -->
+    <!-- 左侧：文章列表 -->
     <div id="sidebar" class="sidebar">
         <div class="sidebar-collapsed-hint">
             <span>☰</span>
         </div>
-        <div id="sidebarContent" class="sidebar-content">
+        <div class="sidebar-content">
             <h3>文章列表</h3>
             <div id="articleList" class="article-list"></div>
         </div>
     </div>
 
+    <!-- 右侧：标签栏 -->
+    <div id="tabbar" class="tabbar"></div>
 
-    <!-- 覆盖层 -->
-    <div class="overlay" id="overlay">
-        <iframe src=""></iframe>
-        <button class="close-btn" id="closeOverlayBtn" onclick="close_overlay()">&times;</button>
-    </div>
-
-    <script src="assets/javascript/overlay.js"></script>
+    <script type="module" src="assets/javascript/main.js"></script>
 </body>
 
 </html>
