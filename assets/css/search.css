@@ -1,10 +1,10 @@
-/* 搜索框窗口：全屏透明承载层，参与层叠管理 */
+/* 搜索框窗口：固定位于最底层（z 低于所有文章），不做浮沉动画 */
 .search-window {
     position: fixed;
     inset: 0;
-    z-index: 10;
+    z-index: 5;
     opacity: 0;
-    transition: opacity 0.1s ease;
+    transition: opacity 0.3s ease;
 }
 
 .search-window.ready {
@@ -21,21 +21,6 @@
     }
 }
 
-/* 遮罩：搜索框置顶覆盖文章时显示，压住下层内容 */
-.search-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-.search-window.dimmed .search-backdrop {
-    opacity: 1;
-    pointer-events: auto;
-}
-
 /* 搜索按钮容器 */
 .search-container {
     position: fixed;
@@ -47,10 +32,11 @@
     justify-content: center;
 }
 
-/* 搜索按钮 */
+/* 搜索按钮（div，替代 button 避免交互元素嵌套 input） */
 .search-button {
     width: 60px;
     height: 60px;
+    padding: 0;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -154,14 +140,7 @@
     flex-grow: 1;
 }
 
-.result-tags {
-    font-size: 0.8em;
-    color: #aaa;
-    font-style: italic;
-    flex-shrink: 0;
-}
-
-/* 命中类型标记：标题 / 标签 / 正文 */
+/* 命中类型标记：ID / 标题 / 正文 */
 .result-hit {
     font-size: 0.75em;
     padding: 1px 8px;

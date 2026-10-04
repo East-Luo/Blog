@@ -5,23 +5,26 @@
 ## 架构
 
 ```
-浏览器（成品：裸 HTML + 原生 JS + marked 纯函数库）
+浏览器（成品：裸 HTML + 原生 JS + marked/highlight.js 纯函数库）
   ├── 入口与静态资源：由你的服务器提供（index.html + assets/）
-  └── 文章数据：GitHub API 枚举目录 → raw 拉取 md → 前端 marked 渲染
+  ├── 渲染库：marked ESM + highlight.js，从 jsDelivr CDN 动态拉取
+  └── 文章数据：GitHub API 枚举目录 → raw 拉取 md → 前端 marked 渲染 + hljs 高亮
 ```
 
 加载流程的两个判定节点：
 
 ```
-白点 → 拉取 marked → 三向延伸 → GitHub API 枚举+拉取全部 md → 延伸到底
-     → 中点连线（渲染+建索引）→ 升维旋转 + UI 淡入
+白点 → 拉取 CDN 依赖（marked + highlight.js）→ 发散延伸
+     → GitHub API 枚举+拉取全部 md → 延伸到底 → 封边连线 → 升维旋转 + UI 淡入
 ```
+
+失败提示按阶段区分：拉取 CDN 依赖失败提示「加载渲染依赖失败」，文章获取失败提示「从 GitHub 获取文章失败」。
 
 分层：
 
 | 模块 | 文件 | 职责 |
 |------|------|------|
-| 编排 | `assets/javascript/main.js` | 引导、超时、重试、组件初始化 |
+| 编排 | `assets/javascript/main.js` | 引导、CDN 拉库、超时、重试、组件初始化 |
 | 数据 | `assets/javascript/data.js` | API 枚举、拉取 md、marked 渲染、全文搜索 |
 | 背景 | `assets/javascript/background.js` | 加载动画 + 四面体背景（同一 canvas） |
 | 侧边栏 | `assets/javascript/sidebar.js` | 文章列表、点击打开 |
@@ -29,7 +32,6 @@
 | 窗口栈 | `assets/javascript/window-manager.js` | 打开/置顶/关闭、LRU 淘汰（上限 8 篇） |
 | 标签栏 | `assets/javascript/tabbar.js` | 栈状态的视图投影 |
 | 文章视图 | `assets/javascript/article-view.js` | 窗口 DOM、同步注入、转场 |
-| 依赖 | `assets/vendor/marked.js` | marked ESM（纯函数库，非运行时框架） |
 
 ## 文章仓库
 

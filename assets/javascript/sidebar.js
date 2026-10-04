@@ -40,5 +40,4 @@ function updateActive(stack) {
 export function initSidebar() {
     render();
     wm.subscribe(updateActive);
-    data.subscribe(render);
 }

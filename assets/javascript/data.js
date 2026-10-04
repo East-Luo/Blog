@@ -8,11 +8,12 @@ const API_URL = `https://api.github.com/repos/${REPO}/git/trees/${BRANCH}?recurs
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/${BRANCH}`;
 
 let markedLib = null;        // 由 main 动态 import 后注入
+let hljsLib = null;          // 代码高亮库，同样由 main 注入
 let articles = [];           // { id, path, dir, file, title, html, text }
-const listeners = new Set();
 
-export function setMarked(m) {
-    markedLib = m;
+export function setLibraries({ marked, hljs }) {
+    markedLib = marked;
+    hljsLib = hljs;
 }
 
 export function getArticles() {
@@ -21,15 +22,6 @@ export function getArticles() {
 
 export function getMeta(id) {
     return articles.find((a) => a.id === id);
-}
-
-export function subscribe(fn) {
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-}
-
-function notify() {
-    for (const fn of listeners) fn();
 }
 
 // 第一个 # 标题行作为文章标题（不要求在第一行）
@@ -62,12 +54,6 @@ function render(md, dir) {
     return markedLib.parse(md, { renderer });
 }
 
-// 从渲染后的 HTML 提纯纯文本（用于全文搜索）
-function htmlToText(html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
-}
-
 // 枚举仓库全部 .md 文件
 async function listArticles() {
     const res = await fetch(API_URL);
@@ -95,11 +81,18 @@ async function loadOne(entry) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const md = await res.text();
     const html = render(md, entry.dir);
+
+    // 解析 DOM：代码高亮 + 提纯纯文本（一次解析两用）
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    if (hljsLib) {
+        doc.querySelectorAll('pre code').forEach((el) => hljsLib.highlightElement(el));
+    }
+
     return {
         ...entry,
         title: extractTitle(md),
-        html,
-        text: htmlToText(html),
+        html: doc.body.innerHTML,
+        text: (doc.body.textContent || '').replace(/\s+/g, ' ').trim(),
     };
 }
 
@@ -108,7 +101,6 @@ export async function fetchArticles() {
     const list = await listArticles();
     const results = await Promise.all(list.map((e) => loadOne(e).catch(() => null)));
     articles = results.filter(Boolean);
-    notify();
     return articles;
 }
 

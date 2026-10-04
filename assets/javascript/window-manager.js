@@ -5,7 +5,6 @@ const MAX_ARTICLES = 8; // 单篇上限，不含搜索框
 const SEARCH_ID = 'search';
 
 let stack = []; // 底 → 顶，元素 { id, type, z }
-let zCounter = 10;
 const listeners = new Set();
 
 export function subscribe(fn) {
@@ -24,7 +23,10 @@ function articleCount() {
 
 function assignZ() {
     let z = 10;
-    for (const w of stack) w.z = z++;
+    for (const w of stack) {
+        if (w.type === 'search') continue; // 搜索框 z 由 CSS 固定，不参与分配
+        w.z = z++;
+    }
 }
 
 function ensureSearch() {

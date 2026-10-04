@@ -120,6 +120,61 @@
     color: #d4d4d4;
 }
 
+/* 代码语法高亮 token 配色（配合 VS Code Dark+） */
+.article-content .hljs-keyword,
+.article-content .hljs-selector-tag,
+.article-content .hljs-literal,
+.article-content .hljs-doctag {
+    color: #569cd6;
+}
+
+.article-content .hljs-string,
+.article-content .hljs-regexp,
+.article-content .hljs-addition {
+    color: #ce9178;
+}
+
+.article-content .hljs-comment,
+.article-content .hljs-quote {
+    color: #6a9955;
+    font-style: italic;
+}
+
+.article-content .hljs-number,
+.article-content .hljs-symbol,
+.article-content .hljs-bullet {
+    color: #b5cea8;
+}
+
+.article-content .hljs-title,
+.article-content .hljs-section,
+.article-content .hljs-title.function_ {
+    color: #dcdcaa;
+}
+
+.article-content .hljs-built_in,
+.article-content .hljs-type,
+.article-content .hljs-class .hljs-title {
+    color: #4ec9b0;
+}
+
+.article-content .hljs-attr,
+.article-content .hljs-attribute,
+.article-content .hljs-variable,
+.article-content .hljs-template-variable {
+    color: #9cdcfe;
+}
+
+.article-content .hljs-meta,
+.article-content .hljs-selector-attr,
+.article-content .hljs-selector-pseudo {
+    color: #9cdcfe;
+}
+
+.article-content .hljs-deletion {
+    color: #f14c4c;
+}
+
 .article-content hr {
     height: 1px;
     margin: 32px 0;

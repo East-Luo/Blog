@@ -9,6 +9,7 @@
 
 const canvas = document.getElementById('background');
 const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('loadStatus');
 
 const cx = () => canvas.width / 2;
 const cy = () => canvas.height / 2;
@@ -24,9 +25,7 @@ const ANGLES = [
 // ---------- 3D 几何（正四面体，初始姿态 v3 朝向观察者） ----------
 const R3 = (2 * Math.sqrt(2)) / 3;
 const VERTICES_3D = [
-    { x: R3 * Math.cos(ANGLES[0]), y: R3 * Math.sin(ANGLES[0]), z: -1 / 3 },
-    { x: R3 * Math.cos(ANGLES[1]), y: R3 * Math.sin(ANGLES[1]), z: -1 / 3 },
-    { x: R3 * Math.cos(ANGLES[2]), y: R3 * Math.sin(ANGLES[2]), z: -1 / 3 },
+    ...ANGLES.map((a) => ({ x: R3 * Math.cos(a), y: R3 * Math.sin(a), z: -1 / 3 })),
     { x: 0, y: 0, z: 1 },
 ];
 const EDGES_3D = [
@@ -47,20 +46,19 @@ let dataReadyFlag = false;
 
 let spokeT = 0; // 辐条（发散）进度 0..1
 let linkT = 0;  // 三角形边（封边）进度 0..1
-let dimT = 0;   // 升维进度 0..1
 let colorT = 0; // 颜色 0=白 1=红（失败用）
 let failSpoke0 = 0;
 let failLink0 = 0;
 
 // 各检查点的随机参数（begin 时重新随机）
-let pointDur = 200;
+let pointDur = 750;
 let growTarget = 0.45;
-let grow1Dur = 200;
-let grow2Dur = 200;
+let grow1Dur = 750;
+let grow2Dur = 750;
 let linkTarget = 0.45;
-let link1Dur = 200;
-let link2Dur = 200;
-let dimDur = 500;
+let link1Dur = 750;
+let link2Dur = 750;
+let dimDur = 750;
 
 let onReady = null;
 let onRetry = null;
@@ -75,8 +73,8 @@ const noiseOffset = [Math.random() * 70, Math.random() * 70, Math.random() * 70]
 
 const now = () => performance.now();
 const rand = (min, max) => min + Math.random() * (max - min);
+const stageDur = () => rand(650, 850); // ~750ms 一阶段
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const noise = (x) => Math.sin(x) * 0.2 + 0.2;
 
 function resize() {
@@ -93,57 +91,66 @@ function lineColor(alpha) {
     return `rgba(255, ${g}, ${b}, ${alpha})`;
 }
 
-function pts2d() {
-    const c = { x: cx(), y: cy() };
-    return ANGLES.map((a) => ({
-        x: c.x + R * Math.cos(a),
-        y: c.y + R * Math.sin(a),
-    }));
+// 当前等待内容的文本：三个宏观阶段——初始化、加载 marked、获取文章数据
+function statusText() {
+    switch (state) {
+        case 'point':
+            return '初始化';
+        case 'grow1':
+        case 'hold1':
+        case 'grow2':
+            return '加载CDN';
+        case 'link1':
+        case 'hold2':
+        case 'link2':
+            return '获取文章数据';
+        default:
+            return '';
+    }
+}
+
+let lastStatus = '';
+function updateStatus() {
+    const s = statusText();
+    if (s !== lastStatus) {
+        lastStatus = s;
+        statusEl.textContent = s;
+        statusEl.classList.toggle('show', !!s);
+    }
 }
 
 function draw2D() {
     const c = { x: cx(), y: cy() };
-    const pts = pts2d();
-
+    const pts = ANGLES.map((a) => ({ x: c.x + R * Math.cos(a), y: c.y + R * Math.sin(a) }));
     ctx.lineWidth = 2;
 
     // 中心白点：point 阶段淡入，发散生长时缩小消失
-    const dotAlpha = state === 'point' ? Math.min(1, (now() - stateStart) / pointDur) : 1;
     const dotR = 4 * Math.max(0, 1 - spokeT * 5);
     if (dotR > 0.01) {
-        ctx.fillStyle = lineColor(0.9 * dotAlpha);
+        const alpha = state === 'point' ? Math.min(1, (now() - stateStart) / pointDur) : 1;
+        ctx.fillStyle = lineColor(0.9 * alpha);
         ctx.beginPath();
         ctx.arc(c.x, c.y, dotR, 0, Math.PI * 2);
         ctx.fill();
     }
 
-    // 三条辐条：中心 → 顶点
+    // 辐条（中心 → 顶点）与三角形边（顶点 → 相邻顶点）同色，一次成路径
     ctx.strokeStyle = lineColor(0.9);
     ctx.beginPath();
     for (let i = 0; i < 3; i++) {
-        const end = {
-            x: c.x + (pts[i].x - c.x) * spokeT,
-            y: c.y + (pts[i].y - c.y) * spokeT,
-        };
+        const p = pts[i];
         ctx.moveTo(c.x, c.y);
-        ctx.lineTo(end.x, end.y);
+        ctx.lineTo(c.x + (p.x - c.x) * spokeT, c.y + (p.y - c.y) * spokeT);
+    }
+    if (linkT > 0.001) {
+        for (let i = 0; i < 3; i++) {
+            const p = pts[i];
+            const q = pts[(i + 1) % 3];
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + (q.x - p.x) * linkT, p.y + (q.y - p.y) * linkT);
+        }
     }
     ctx.stroke();
-
-    // 三角形三条边：从顶点向相邻顶点延伸
-    if (linkT > 0.001) {
-        ctx.strokeStyle = lineColor(0.9);
-        ctx.beginPath();
-        for (let i = 0; i < 3; i++) {
-            const j = (i + 1) % 3;
-            ctx.moveTo(pts[i].x, pts[i].y);
-            ctx.lineTo(
-                pts[i].x + (pts[j].x - pts[i].x) * linkT,
-                pts[i].y + (pts[j].y - pts[i].y) * linkT
-            );
-        }
-        ctx.stroke();
-    }
 }
 
 function updateRotation() {
@@ -173,12 +180,11 @@ function rotateVertex(v) {
     const y = v.y * cosA - v.z * sinA;
     const z = v.y * sinA + v.z * cosA;
     // 绕 X 轴
-    const x2 = x;
     const y2 = y * cosX - z * sinX;
     const z2 = y * sinX + z * cosX;
     // 绕 Y 轴
-    const x3 = x2 * cosY - z2 * sinY;
-    const z3 = x2 * sinY + z2 * cosY;
+    const x3 = x * cosY - z2 * sinY;
+    const z3 = x * sinY + z2 * cosY;
     // 绕 Z 轴
     return {
         x: x3 * cosZ - y2 * sinZ,
@@ -189,21 +195,18 @@ function rotateVertex(v) {
 
 function draw3D() {
     const c = { x: cx(), y: cy() };
-    const projected = VERTICES_3D.map((v) => {
+    const pts = VERTICES_3D.map((v) => {
         const r = rotateVertex(v);
         const factor = DISTANCE / (DISTANCE - r.z);
-        return {
-            x: r.x * factor * SCALE + c.x,
-            y: r.y * factor * SCALE + c.y,
-        };
+        return { x: r.x * factor * SCALE + c.x, y: r.y * factor * SCALE + c.y };
     });
 
     ctx.strokeStyle = lineColor(0.7);
     ctx.lineWidth = 2;
     ctx.beginPath();
     for (const [i, j] of EDGES_3D) {
-        ctx.moveTo(projected[i].x, projected[i].y);
-        ctx.lineTo(projected[j].x, projected[j].y);
+        ctx.moveTo(pts[i].x, pts[i].y);
+        ctx.lineTo(pts[j].x, pts[j].y);
     }
     ctx.stroke();
 }
@@ -230,13 +233,12 @@ function tick() {
             break;
         }
 
-        case 'hold1': {
+        case 'hold1':
             if (markedReadyFlag) {
                 state = 'grow2';
                 stateStart = now();
             }
             break;
-        }
 
         case 'grow2': {
             const p = Math.min(1, t / (grow2Dur / 1000));
@@ -260,13 +262,12 @@ function tick() {
             break;
         }
 
-        case 'hold2': {
+        case 'hold2':
             if (dataReadyFlag) {
                 state = 'link2';
                 stateStart = now();
             }
             break;
-        }
 
         case 'link2': {
             const p = Math.min(1, t / (link2Dur / 1000));
@@ -279,25 +280,20 @@ function tick() {
             break;
         }
 
-        case 'dimension': {
-            const p = Math.min(1, t / (dimDur / 1000));
-            dimT = easeInOut(p);
-            if (p >= 1) {
-                dimT = 1;
+        case 'dimension':
+            if (t >= dimDur / 1000) {
                 state = 'rotate';
                 stateStart = now();
                 if (onReady) onReady();
             }
             break;
-        }
 
         case 'rotate':
             updateRotation();
             break;
 
         case 'fail': {
-            const p = Math.min(1, t / 0.2);
-            const e = easeOut(p);
+            const e = easeOut(Math.min(1, t / 0.2));
             spokeT = failSpoke0 + (1 - failSpoke0) * e;
             linkT = failLink0 + (1 - failLink0) * e;
             colorT = e;
@@ -305,27 +301,24 @@ function tick() {
         }
     }
 
+    updateStatus();
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    if (state === 'rotate') {
-        draw3D();
-    } else {
-        draw2D();
-    }
+    if (state === 'rotate') draw3D();
+    else draw2D();
 
     rafId = requestAnimationFrame(tick);
 }
 
-function showFailScreen() {
+function showFailScreen(msg) {
     if (failEl) return;
     failEl = document.createElement('div');
     failEl.className = 'fail-screen';
-    failEl.innerHTML = '文章获取失败<div class="fail-hint">点击重试</div>';
-    failEl.addEventListener('click', () => {
-        if (onRetry) onRetry();
-    });
+    failEl.innerHTML = `${msg}<div class="fail-hint">点击重试</div>`;
+    failEl.addEventListener('click', () => onRetry && onRetry());
     document.body.appendChild(failEl);
     requestAnimationFrame(() => failEl.classList.add('show'));
 }
@@ -339,17 +332,17 @@ function reset() {
     state = 'idle';
     spokeT = 0;
     linkT = 0;
-    dimT = 0;
     colorT = 0;
+    lastStatus = '';
+    statusEl.textContent = '';
+    statusEl.classList.remove('show');
     markedReadyFlag = false;
     dataReadyFlag = false;
     selfRotation = 0;
     axisAngleX = 0;
     axisAngleY = 0;
     axisAngleZ = 0;
-    noiseOffset[0] = Math.random() * 70;
-    noiseOffset[1] = Math.random() * 70;
-    noiseOffset[2] = Math.random() * 70;
+    for (let i = 0; i < 3; i++) noiseOffset[i] = Math.random() * 70;
 }
 
 // 创建一次加载引导。main 通过返回的控制器推进动画。
@@ -362,14 +355,14 @@ export function createIntro({ onReady: ready, onRetry: retry } = {}) {
         begin() {
             state = 'point';
             stateStart = now();
-            pointDur = rand(150, 250);
+            pointDur = stageDur();
             growTarget = rand(0.3, 0.6);
-            grow1Dur = rand(150, 250);
-            grow2Dur = rand(150, 250);
+            grow1Dur = stageDur();
+            grow2Dur = stageDur();
             linkTarget = rand(0.3, 0.6);
-            link1Dur = rand(150, 250);
-            link2Dur = rand(150, 250);
-            dimDur = rand(400, 600);
+            link1Dur = stageDur();
+            link2Dur = stageDur();
+            dimDur = stageDur();
             rafId = requestAnimationFrame(tick);
         },
         markedReady() {
@@ -378,12 +371,12 @@ export function createIntro({ onReady: ready, onRetry: retry } = {}) {
         dataReady() {
             dataReadyFlag = true;
         },
-        fail() {
+        fail(msg) {
             failSpoke0 = spokeT;
             failLink0 = linkT;
             state = 'fail';
             stateStart = now();
-            showFailScreen();
+            showFailScreen(msg || '加载失败');
         },
     };
 }

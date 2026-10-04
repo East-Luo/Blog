@@ -1,10 +1,9 @@
 // search.js —— 搜索框：展开/收起交互、模糊搜索、结果渲染、快捷键唤起。
-// 搜索框是 window-manager 中的一个特殊窗口，跟随栈层叠。
+// 搜索框固定位于最底层（z 低于所有文章），不做浮沉动画，由文章层覆盖/让位。
 
 import * as data from './data.js';
 import * as wm from './window-manager.js';
 
-const searchWindow = document.getElementById('searchWindow');
 const searchButton = document.getElementById('searchButton');
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
@@ -93,17 +92,6 @@ function initSearch() {
             searchButton.classList.add('active');
             searchInput.focus();
         }
-    });
-
-    // 跟随栈层叠：搜索窗口的 z 由 wm 分配；置顶且有文章时显示遮罩
-    wm.subscribe((stack) => {
-        const w = stack.find((x) => x.id === 'search');
-        searchWindow.style.zIndex = w ? String(w.z) : '10';
-
-        const top = stack.length ? stack[stack.length - 1] : null;
-        const hasArticles = stack.some((x) => x.type === 'article');
-        const dimmed = !!(top && top.id === 'search' && hasArticles);
-        searchWindow.classList.toggle('dimmed', dimmed);
     });
 }
 

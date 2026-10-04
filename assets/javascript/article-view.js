@@ -27,8 +27,9 @@ function createWindow(id, z) {
     windowsRoot.appendChild(el);
     domMap.set(id, { el });
 
-    // 下一帧展开（作为新栈顶滑入）
-    requestAnimationFrame(() => el.classList.add('active'));
+    // 强制首帧布局后展开，确保 translateY(100%)→0 的过渡被触发
+    void el.getBoundingClientRect();
+    el.classList.add('active');
     return el;
 }
 

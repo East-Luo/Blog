@@ -25,18 +25,18 @@
 <body>
     <!-- 底层：背景与加载动画 -->
     <canvas id="background"></canvas>
+    <div id="loadStatus" class="load-status"></div>
 
     <!-- 中层：文章窗口（window-manager 动态挂载） -->
     <div id="windows"></div>
 
-    <!-- 最高层：搜索框（一个特殊窗口，参与层叠） -->
+    <!-- 最底层：搜索框（固定位置，低于所有文章层） -->
     <div id="searchWindow" class="search-window">
-        <div class="search-backdrop"></div>
         <div class="search-container">
-            <button id="searchButton" class="search-button">
+            <div id="searchButton" class="search-button">
                 <div class="triangle"></div>
                 <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
-            </button>
+            </div>
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>

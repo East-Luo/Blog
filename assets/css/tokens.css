@@ -5,12 +5,10 @@
     --color-bg: #000;
     --color-fg: #fff;
     --color-error: #ff4444;
-    --color-glass: rgba(255, 255, 255, 0.2);
     --color-glass-strong: rgba(255, 255, 255, 0.3);
 
     --ease-window: cubic-bezier(0.22, 1, 0.36, 1);
     --dur-window: 0.35s;
-    --dur-fade: 0.3s;
 
     font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, sans-serif;
 }
@@ -59,4 +57,23 @@ body {
     margin-top: 8px;
     font-size: 13px;
     color: rgba(255, 255, 255, 0.6);
+}
+
+/* 加载状态文本：图形底部，实时显示当前等待内容 */
+.load-status {
+    position: fixed;
+    left: 50%;
+    top: calc(50% + 180px);
+    transform: translateX(-50%);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    user-select: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.load-status.show {
+    opacity: 1;
 }
