@@ -1,11 +1,11 @@
-// tabbar.js —— 标签栏：window-manager 栈状态的投影，纯视图层。
-// 栈顶标签显示在最上；点击标签置顶，右键或点关闭按钮关闭。
+// tabbar.js —— 标签栏（桌面）：window-manager 栈状态的投影，纯视图层。
+// 自建 DOM，平台差异完全封装在模块内部。
 
-import * as wm from './window-manager.js';
-import * as data from './data.js';
+import * as wm from '../../core/window-manager.js';
+import * as data from '../../core/data.js';
 
-const root = document.getElementById('tabbar');
 const SEARCH_LABEL = '搜索';
+let root = null;
 
 function titleFor(w) {
     if (w.type === 'search') return SEARCH_LABEL;
@@ -68,8 +68,11 @@ function render() {
     }
 }
 
-wm.subscribe(render);
-
 export function initTabbar() {
+    root = document.createElement('div');
+    root.id = 'tabbar';
+    root.className = 'tabbar';
+    document.body.appendChild(root);
+    wm.subscribe(render);
     render();
 }

@@ -7,13 +7,10 @@
     <meta name="color-scheme" content="dark">
     <title>Blog</title>
 
+    <!-- 通用样式（跨平台）：令牌、背景、加载状态 -->
     <link rel="stylesheet" href="assets/css/tokens.css">
-    <link rel="stylesheet" href="assets/css/sidebar.css">
-    <link rel="stylesheet" href="assets/css/search.css">
-    <link rel="stylesheet" href="assets/css/tabbar.css">
-    <link rel="stylesheet" href="assets/css/article.css">
 
-    <!-- 防 FOUC：外部样式加载前先隐藏动态组件，避免搜索框以无样式状态闪现 -->
+    <!-- 防 FOUC：平台组件自建 DOM 前先隐藏（组件根元素 class 为跨平台约定） -->
     <style>
         .search-window,
         .sidebar {
@@ -23,38 +20,11 @@
 </head>
 
 <body>
-    <!-- 底层：背景与加载动画 -->
+    <!-- 底层：背景与加载动画（跨平台公共骨架） -->
     <canvas id="background"></canvas>
     <div id="loadStatus" class="load-status"></div>
 
-    <!-- 中层：文章窗口（window-manager 动态挂载） -->
-    <div id="windows"></div>
-
-    <!-- 最底层：搜索框（固定位置，低于所有文章层） -->
-    <div id="searchWindow" class="search-window">
-        <div class="search-container">
-            <div id="searchButton" class="search-button">
-                <div class="triangle"></div>
-                <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
-            </div>
-            <div id="searchResults" class="search-results"></div>
-        </div>
-    </div>
-
-    <!-- 左侧：文章列表 -->
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-collapsed-hint">
-            <span>☰</span>
-        </div>
-        <div class="sidebar-content">
-            <h3>文章列表</h3>
-            <div id="articleList" class="article-list"></div>
-        </div>
-    </div>
-
-    <!-- 右侧：标签栏 -->
-    <div id="tabbar" class="tabbar"></div>
-
+    <!-- 其余 DOM（侧栏/搜索框/标签栏/文章窗口）由平台模块自建 -->
     <script type="module" src="assets/javascript/main.js"></script>
 </body>
 

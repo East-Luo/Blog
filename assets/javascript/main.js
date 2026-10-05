@@ -1,30 +1,26 @@
-// main.js —— 应用引导：CDN 拉取 marked → GitHub API 取文章 → 组件编排。
-// 加载动画的两个判定节点：marked 就绪、文章数据就绪，失败时分别提示。
+// main.js —— 应用引导：CDN 依赖 → 平台资源 → GitHub 文章 → 初始化组件。
+// 只依赖 core 与平台统一接口，不关心具体平台实现。
 
-import * as data from './data.js';
-import { createIntro } from './background.js';
-import { initSidebar } from './sidebar.js';
-import { initSearch } from './search.js';
-import { initTabbar } from './tabbar.js';
-import { initArticleView } from './article-view.js';
+import * as data from './core/data.js';
+import { createIntro } from './core/background.js';
+import { detectPlatform } from './platform.js';
 
 const MARKED_URL = 'https://cdn.jsdelivr.net/npm/marked@15.0.12/lib/marked.esm.js';
 const HLJS_URL = 'https://cdn.jsdelivr.net/npm/highlight.js@11/+esm';
 const TIMEOUT = 10000;
 
-const sidebar = document.getElementById('sidebar');
-const searchWindow = document.getElementById('searchWindow');
+// 平台模块在 boot 中动态加载后赋值，revealUI 通过它触发淡入
+let platform = null;
 
 function revealUI() {
-    sidebar.classList.add('ready');
-    searchWindow.classList.add('ready');
+    platform?.reveal();
 }
 
-function initComponents() {
-    initSidebar();
-    initSearch();
-    initTabbar();
-    initArticleView();
+function injectStyle(href) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
 }
 
 function withTimeout(promise, ms) {
@@ -52,6 +48,16 @@ async function boot() {
     data.setLibraries({ marked, hljs });
     intro.markedReady();
 
+    // 平台资源：动态拉取对应平台的 js + 注入对应平台的 css
+    const platformName = detectPlatform();
+    try {
+        platform = await withTimeout(import(`./platforms/${platformName}/index.js`), TIMEOUT);
+        injectStyle(`assets/css/${platformName}.css`);
+    } catch (e) {
+        intro.fail('加载平台资源失败');
+        return;
+    }
+
     // 封边期硬检查点：GitHub API 枚举 + 拉取渲染全部文章
     try {
         await withTimeout(data.fetchArticles(), TIMEOUT);
@@ -61,7 +67,7 @@ async function boot() {
     }
     intro.dataReady();
 
-    initComponents();
+    platform.initComponents();
 }
 
 boot();

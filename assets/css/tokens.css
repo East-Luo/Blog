@@ -77,3 +77,432 @@ body {
 .load-status.show {
     opacity: 1;
 }
+
+/* ============ 文章窗口（跨平台通用）：抽屉式 + 暗色阅读 ============ */
+.article-window {
+    position: fixed;
+    inset: 0;
+    background: #1e1e1e;
+    z-index: 10;
+    transition: transform var(--dur-window) var(--ease-window);
+    transform: translateY(100%);
+}
+
+.article-window.active {
+    transform: translateY(0);
+}
+
+.article-window-body {
+    height: 100%;
+    overflow-y: auto;
+    padding: 60px 20px 40px;
+}
+
+.article-content {
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.8;
+    font-size: 16px;
+    color: #d4d4d4;
+    word-wrap: break-word;
+}
+
+.article-content h1 {
+    font-weight: 300;
+    font-size: 2.2em;
+    line-height: 1.2;
+    margin: 1em 0 16px;
+    color: #e8e8e8;
+}
+
+.article-content h2 {
+    font-weight: 400;
+    font-size: 1.6em;
+    line-height: 1.2;
+    margin: 1.2em 0 14px;
+    color: #e8e8e8;
+}
+
+.article-content h3,
+.article-content h4,
+.article-content h5,
+.article-content h6 {
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 1.2em 0 12px;
+    color: #e8e8e8;
+}
+
+.article-content p {
+    margin: 0 0 16px;
+}
+
+.article-content a {
+    color: #3794ff;
+}
+
+.article-content img {
+    max-width: 100%;
+}
+
+.article-content blockquote {
+    margin: 16px 0;
+    padding: 0 15px;
+    color: #a8a8a8;
+    background: #2a2a2a;
+    border-left: 4px solid #3c3c3c;
+}
+
+.article-content code {
+    font-family: Consolas, Menlo, Courier, monospace;
+    font-size: 0.85em;
+    background: #2d2d2d;
+    border-radius: 3px;
+    padding: 0.2em 0.4em;
+    color: #d7ba7d;
+}
+
+.article-content pre {
+    padding: 1em;
+    overflow-x: auto;
+    background: #161616;
+    border-radius: 6px;
+}
+
+.article-content pre code {
+    padding: 0;
+    background: none;
+    color: #d4d4d4;
+}
+
+/* 代码语法高亮 token 配色（配合 VS Code Dark+） */
+.article-content .hljs-keyword,
+.article-content .hljs-selector-tag,
+.article-content .hljs-literal,
+.article-content .hljs-doctag {
+    color: #569cd6;
+}
+
+.article-content .hljs-string,
+.article-content .hljs-regexp,
+.article-content .hljs-addition {
+    color: #ce9178;
+}
+
+.article-content .hljs-comment,
+.article-content .hljs-quote {
+    color: #6a9955;
+    font-style: italic;
+}
+
+.article-content .hljs-number,
+.article-content .hljs-symbol,
+.article-content .hljs-bullet {
+    color: #b5cea8;
+}
+
+.article-content .hljs-title,
+.article-content .hljs-section,
+.article-content .hljs-title.function_ {
+    color: #dcdcaa;
+}
+
+.article-content .hljs-built_in,
+.article-content .hljs-type,
+.article-content .hljs-class .hljs-title {
+    color: #4ec9b0;
+}
+
+.article-content .hljs-attr,
+.article-content .hljs-attribute,
+.article-content .hljs-variable,
+.article-content .hljs-template-variable {
+    color: #9cdcfe;
+}
+
+.article-content .hljs-meta,
+.article-content .hljs-selector-attr,
+.article-content .hljs-selector-pseudo {
+    color: #9cdcfe;
+}
+
+.article-content .hljs-deletion {
+    color: #f14c4c;
+}
+
+.article-content hr {
+    height: 1px;
+    margin: 32px 0;
+    background: #3c3c3c;
+    border: 0;
+}
+
+.article-content table {
+    margin: 10px 0 15px;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.article-content th,
+.article-content td {
+    border: 1px solid #3c3c3c;
+    padding: 6px 13px;
+}
+
+.article-content th {
+    background: #2a2a2a;
+    color: #e8e8e8;
+}
+
+/* ============ 搜索框基础（跨平台通用） ============ */
+.search-window {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.search-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-button {
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.4s ease;
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-button.active {
+    width: 50vw;
+}
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 20px solid rgba(255, 255, 255, 0.8);
+    transition: transform 0.4s ease;
+    position: absolute;
+    left: 0;
+}
+
+.search-button.active .triangle {
+    transform: translateX(20px) rotate(180deg);
+}
+
+.search-input {
+    position: absolute;
+    left: 0;
+    width: 42vw;
+    height: 40px;
+    padding: 0 15px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.search-button.active .search-input {
+    opacity: 1;
+    visibility: visible;
+    left: 50px;
+}
+
+.search-results {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    max-height: 40vh;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.search-result-item {
+    padding: 10px;
+    color: var(--color-fg);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+}
+
+.search-result-item:hover {
+    background: var(--color-glass-strong);
+}
+
+.result-id {
+    font-weight: bold;
+    color: #ccc;
+    font-size: 0.9em;
+    flex-shrink: 0;
+}
+
+.result-title {
+    font-size: 1em;
+    flex-grow: 1;
+}
+
+.result-hit {
+    font-size: 0.75em;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #ddd;
+    flex-shrink: 0;
+}
+
+/* 侧栏与搜索框共用的淡入动画 */
+.sidebar.ready {
+    animation: ui-fadein 0.8s ease forwards;
+}
+
+.search-window.ready {
+    animation: ui-fadein 0.8s ease 0.2s forwards;
+}
+
+@keyframes ui-fadein {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* ============ 文章列表项（跨平台通用） ============ */
+.article-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-item {
+    color: var(--color-fg);
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+}
+
+.sidebar-item:hover {
+    background: var(--color-glass-strong);
+}
+
+.sidebar-item.active {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-item.empty {
+    color: rgba(255, 255, 255, 0.5);
+    background: none;
+    cursor: default;
+}
+
+/* ============ 标签视觉样式（跨平台通用） ============ */
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    max-width: 220px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: var(--color-fg);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    animation: tab-slidein 0.3s var(--ease-window);
+}
+
+@keyframes tab-slidein {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.tab:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.tab.active {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.tab-title {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tab-close {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    flex-shrink: 0;
+}
+
+.tab:hover .tab-close {
+    opacity: 1;
+}
+
+.tab-close:hover {
+    color: var(--color-fg);
+    background: rgba(255, 255, 255, 0.2);
+}

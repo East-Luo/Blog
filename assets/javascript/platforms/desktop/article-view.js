@@ -1,10 +1,10 @@
-// article-view.js —— 文章窗口的 DOM 生命周期：创建、注入、抽屉式转场、销毁。
-// 仅栈顶文章展开为全屏，其余窗口收到底部（视口外），由标签栏切换。
+// article-view.js —— 文章窗口（桌面）：DOM 生命周期、抽屉式转场。
+// 自建 windows 容器，平台差异完全封装在模块内部。
 
-import * as wm from './window-manager.js';
-import * as data from './data.js';
+import * as wm from '../../core/window-manager.js';
+import * as data from '../../core/data.js';
 
-const windowsRoot = document.getElementById('windows');
+let windowsRoot = null;
 const domMap = new Map(); // id -> { el }
 let prevArticleIds = [];
 
@@ -14,12 +14,10 @@ function createWindow(id, z) {
     el.className = 'article-window';
     el.style.zIndex = z;
     el.innerHTML = `
-        <button class="article-close-btn" title="关闭">&times;</button>
         <div class="article-window-body">
             <div class="article-content"></div>
         </div>
     `;
-    el.querySelector('.article-close-btn').addEventListener('click', () => wm.close(id));
 
     const content = el.querySelector('.article-content');
     content.innerHTML = meta ? meta.html : '<p style="color:#666">文章不存在</p>';
@@ -72,8 +70,9 @@ function onStackChange(stack) {
     prevArticleIds = articleIds;
 }
 
-wm.subscribe(onStackChange);
-
 export function initArticleView() {
-    // 订阅已挂接，无额外初始化
+    windowsRoot = document.createElement('div');
+    windowsRoot.id = 'windows';
+    document.body.appendChild(windowsRoot);
+    wm.subscribe(onStackChange);
 }

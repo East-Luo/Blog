@@ -101,6 +101,10 @@ export async function fetchArticles() {
     const list = await listArticles();
     const results = await Promise.all(list.map((e) => loadOne(e).catch(() => null)));
     articles = results.filter(Boolean);
+    // 枚举到文章但全部加载失败时，不能表现为成功（单篇失败仍静默跳过）
+    if (list.length && !articles.length) {
+        throw new Error('全部文章加载失败');
+    }
     return articles;
 }
 

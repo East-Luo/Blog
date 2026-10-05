@@ -1,4 +1,6 @@
-/* 侧边栏：悬停拉出，离开缩回 */
+/* desktop.css —— 桌面平台样式：hover 侧栏、居中搜索框、右侧标签栏、抽屉式文章窗口 */
+
+/* ============ 侧边栏：悬停拉出，离开缩回 ============ */
 .sidebar {
     position: fixed;
     left: 0;
@@ -55,48 +57,17 @@
     font-size: 16px;
 }
 
-.article-list {
+
+/* ============ 标签栏：右侧、垂直、居中 ============ */
+.tabbar {
+    position: fixed;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 80vh;
+    z-index: 2000;
 }
 
-.sidebar-item {
-    color: var(--color-fg);
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    white-space: nowrap;
-}
-
-.sidebar-item:hover {
-    background: var(--color-glass-strong);
-}
-
-/* 当前置顶的文章 */
-.sidebar-item.active {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.sidebar-item.empty {
-    color: rgba(255, 255, 255, 0.5);
-    background: none;
-    cursor: default;
-}
-
-/* 加载完成后的淡入 */
-.sidebar.ready {
-    animation: ui-fadein 0.8s ease forwards;
-}
-
-@keyframes ui-fadein {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}

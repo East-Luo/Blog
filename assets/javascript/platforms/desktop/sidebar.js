@@ -1,9 +1,10 @@
-// sidebar.js —— 侧边栏：渲染文章列表，点击打开文章，高亮当前置顶文章。
+// sidebar.js —— 侧边栏（桌面）：渲染文章列表，点击打开文章，高亮当前置顶文章。
+// 自建 DOM，平台差异完全封装在模块内部。
 
-import * as data from './data.js';
-import * as wm from './window-manager.js';
+import * as data from '../../core/data.js';
+import * as wm from '../../core/window-manager.js';
 
-const listEl = document.getElementById('articleList');
+let listEl = null;
 
 function render() {
     const articles = data.getArticles();
@@ -38,6 +39,18 @@ function updateActive(stack) {
 }
 
 export function initSidebar() {
+    const root = document.createElement('div');
+    root.id = 'sidebar';
+    root.className = 'sidebar';
+    root.innerHTML = `
+        <div class="sidebar-collapsed-hint"><span>☰</span></div>
+        <div class="sidebar-content">
+            <h3>文章列表</h3>
+            <div class="article-list"></div>
+        </div>
+    `;
+    document.body.appendChild(root);
+    listEl = root.querySelector('.article-list');
     render();
     wm.subscribe(updateActive);
 }
