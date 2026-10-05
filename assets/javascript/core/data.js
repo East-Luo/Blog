@@ -56,7 +56,7 @@ function render(md, dir) {
 
 // 枚举仓库全部 .md 文件
 async function listArticles() {
-    const res = await fetch(API_URL);
+    const res = await fetch(API_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return (data.tree || [])
@@ -77,7 +77,7 @@ async function listArticles() {
 }
 
 async function loadOne(entry) {
-    const res = await fetch(`${RAW_BASE}/${entry.path}`);
+    const res = await fetch(`${RAW_BASE}/${entry.path}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const md = await res.text();
     const html = render(md, entry.dir);

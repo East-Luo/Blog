@@ -3,6 +3,7 @@
 
 import * as data from './core/data.js';
 import { createIntro } from './core/background.js';
+import { initBranding } from './core/branding.js';
 import { detectPlatform } from './platform.js';
 
 const MARKED_URL = 'https://cdn.jsdelivr.net/npm/marked@15.0.12/lib/marked.esm.js';
@@ -31,6 +32,9 @@ function withTimeout(promise, ms) {
 }
 
 async function boot() {
+    // 尽早设置图标与标题，避免加载期间短暂显示默认「Blog」
+    initBranding();
+
     const intro = createIntro({ onReady: revealUI, onRetry: boot });
     intro.begin();
 
