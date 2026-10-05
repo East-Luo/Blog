@@ -7,11 +7,40 @@
     top: 0;
     width: 40px;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.3);
+    /* 白色半透明 + blur：侧栏背后是纯黑 canvas（四面体在屏幕中央），
+       白色基底在纯黑上呈现灰白磨砂，否则深灰基底会与黑背景融为一体看不出效果 */
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
     transition: width 0.3s ease;
     z-index: 999;
     overflow: hidden;
     opacity: 0;
+}
+
+/* reveal 时从左侧弹入，往右跳一下提示可交互 */
+.sidebar.ready {
+    animation: sidebar-reveal 0.7s var(--ease-window) forwards;
+}
+
+@keyframes sidebar-reveal {
+    0% {
+        opacity: 0;
+        transform: translateX(-60px);
+    }
+    55% {
+        opacity: 1;
+        transform: translateX(14px);
+    }
+    78% {
+        opacity: 1;
+        transform: translateX(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 .sidebar:hover {

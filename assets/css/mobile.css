@@ -5,29 +5,32 @@
 /* 抽屉是一个可移动的「页」：宽 100%、高 70vh，把手在底部 */
 .mobile-sidebar {
     position: fixed;
-    top: 0;
+    /* 收起：顶部上移到 -(50vh-15vh)，露出整个把手触控区。
+       用 top 而非 transform，避免成为列表 backdrop-filter 的 transform 祖先 */
+    top: calc(-50vh + 15vh);
     left: 0;
     right: 0;
     height: 50vh;
     display: flex;
     flex-direction: column;
     z-index: 1000;
-    /* 收起：上移 50vh-15vh，露出整个把手触控区 */
-    transform: translateY(calc(-100% + 15vh));
-    opacity: 0;
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+    /* 用 visibility 而非 opacity 控制 reveal，避免成为列表 backdrop-filter 的 opacity 祖先 */
+    visibility: hidden;
+    transition: top 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mobile-sidebar.ready {
-    opacity: 1;
+    visibility: visible;
 }
 
-/* 文章列表：占据把手之外的全部空间，内部可滚动，不透明背景保证可读 */
+/* 文章列表：毛玻璃（自身 backdrop-filter，祖先无 transform/opacity 保证采样稳定） */
 .sidebar-list {
     flex: 1;
     overflow-y: auto;
     padding: 15px;
-    background: rgba(0, 0, 0, 0.92);
+    background: rgba(24, 24, 24, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .sidebar-list h3 {
@@ -47,14 +50,46 @@
 }
 
 .handle-bar {
-    width: 100%;
-    height: 40px;
+    width: 100px;
+    height: 30px;
+    margin-top: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--color-fg);
-    font-size: 14px;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0));
+    font-size: 12px;
+    /* 悬浮胶囊：左右半圆 + 中间长方形，毛玻璃风格与底部 dock 一致 */
+    border-radius: 15px;
+    background: rgba(30, 30, 30, 0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* reveal 时把手往下跳一下并淡入，提示可下拉 */
+.mobile-sidebar.ready .handle-bar {
+    animation: handle-bounce 0.7s var(--ease-window);
+}
+
+@keyframes handle-bounce {
+    0% {
+        opacity: 0;
+        transform: translateY(-14px);
+    }
+    30% {
+        opacity: 1;
+    }
+    55% {
+        transform: translateY(14px);
+    }
+    75% {
+        transform: translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ============ 搜索框：居中、默认展开、无三角形按钮 ============ */

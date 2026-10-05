@@ -52,12 +52,12 @@ function collapsedOffset() {
 }
 
 function setOffset(px) {
-    drawer.style.transform = `translateY(${px}px)`;
+    drawer.style.top = `${px}px`;
 }
 
 function currentOffset() {
-    const m = /translateY\(([-\d.]+)px\)/.exec(drawer.style.transform || '');
-    return m ? parseFloat(m[1]) : collapsedOffset();
+    const px = parseFloat(drawer.style.top);
+    return Number.isFinite(px) ? px : collapsedOffset();
 }
 
 function collapse() {
