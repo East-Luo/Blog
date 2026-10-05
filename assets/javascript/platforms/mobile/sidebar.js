@@ -76,26 +76,35 @@ function initGesture() {
     let dragging = false;
     let startY = 0;
     let startOffset = 0;
+    let maxDy = 0;
 
     function start(e) {
         dragging = true;
         startY = e.touches[0].clientY;
         startOffset = currentOffset();
+        maxDy = 0;
         drawer.style.transition = 'none';
     }
 
     function move(e) {
         if (!dragging) return;
         const dy = e.touches[0].clientY - startY;
+        maxDy = Math.max(maxDy, Math.abs(dy));
         setOffset(Math.max(collapsedOffset(), Math.min(0, startOffset + dy)));
     }
 
     function end() {
         if (!dragging) return;
         dragging = false;
-        // 吸附：当前位置越过中点则展开，否则收起
-        if (currentOffset() > collapsedOffset() / 2) expand();
-        else collapse();
+        // 移动极小视为点击：切换展开/收起；否则按位移吸附
+        if (maxDy < 10) {
+            if (expanded) collapse();
+            else expand();
+        } else if (currentOffset() > collapsedOffset() / 2) {
+            expand();
+        } else {
+            collapse();
+        }
     }
 
     handleEl.addEventListener('touchstart', start, { passive: true });

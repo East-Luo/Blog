@@ -71,3 +71,36 @@
     z-index: 2000;
 }
 
+/* ============ 搜索框（桌面）：去 transform/opacity 动画，修复 backdrop-filter ============
+
+   背景：input 的 backdrop-filter 采样，其祖先链上若有 transform 或 opacity 动画，
+   Chromium 会丢毛玻璃（Firefox 延迟生效）。桌面端原有两个破坏源：
+   1) .search-container 的 transform: translate(-50%, -50%) 用于居中；
+   2) .search-window 的 opacity 淡入动画。
+   这里把居中改由 .search-window 的 flex 完成，显隐改 visibility，
+   三角形按钮的淡入放到自身（.triangle 非 input 祖先，安全）。 */
+.search-window {
+    opacity: 1;
+    visibility: hidden;
+    transition: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-window.ready {
+    visibility: visible;
+    animation: none;
+}
+
+.search-container {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+}
+
+.search-window.ready .triangle {
+    animation: ui-fadein 0.8s ease 0.2s both;
+}
+

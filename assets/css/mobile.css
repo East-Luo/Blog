@@ -12,8 +12,8 @@
     display: flex;
     flex-direction: column;
     z-index: 1000;
-    /* 收起：上移 70vh-40px，仅把手露在屏幕最上缘 */
-    transform: translateY(calc(-100% + 40px));
+    /* 收起：上移 50vh-15vh，露出整个把手触控区 */
+    transform: translateY(calc(-100% + 15vh));
     opacity: 0;
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
 }
@@ -59,18 +59,28 @@
 
 /* ============ 搜索框：居中、默认展开、无三角形按钮 ============ */
 
-.search-container {
-    position: fixed;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 82vw;
-    display: flex;
-    flex-direction: column;
+/* 关键修复：backdrop-filter 元素的祖先若带 opacity 动画/filter/transform/mask，
+   Chromium 会丢失毛玻璃采样（Firefox 也延迟到动画结束才生效）。
+   tokens.css 给 .search-window 做了 opacity 淡入，这里改为 visibility 控制显隐：
+   祖先不再经过 opacity 过渡，backdrop-filter 稳定生效；
+   搜索框自身用 opacity 动画补回淡入（backdrop-filter 元素自身的 opacity 不影响模糊采样）。 */
+.search-window {
+    opacity: 1;
+    visibility: hidden;
+    transition: none;
+}
+
+.search-window.ready {
+    visibility: visible;
+    animation: none;
 }
 
 .search-input {
-    width: 100%;
+    position: absolute;
+    top: calc(40% - 21px);
+    left: 50%;
+    width: 82vw;
+    margin-left: -41vw;
     height: 42px;
     padding: 0 16px;
     border: 1px solid rgba(255, 255, 255, 0.4);
@@ -81,10 +91,14 @@
     color: #fff;
     font-size: 16px;
     outline: none;
-    position: static;
-    left: auto;
-    opacity: 1;
-    visibility: visible;
+    opacity: 0;
+    visibility: inherit;
+}
+
+/* 搜索框自身淡入：backdrop-filter 元素自身的 opacity 不影响其模糊采样，
+   所以淡入动画放在 input 上，而不是祖先 .search-window 上 */
+.search-window.ready .search-input {
+    animation: ui-fadein 0.8s ease 0.2s forwards;
 }
 
 .search-input::placeholder {
@@ -92,11 +106,11 @@
 }
 
 .search-results {
-    position: relative;
-    top: auto;
-    left: auto;
-    width: 100%;
-    margin-top: 6px;
+    position: absolute;
+    top: calc(40% + 27px);
+    left: 50%;
+    width: 82vw;
+    margin-left: -41vw;
     background: rgba(0, 0, 0, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;

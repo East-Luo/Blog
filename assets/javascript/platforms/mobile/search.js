@@ -14,10 +14,8 @@ export function initSearch() {
     searchWindow.id = 'searchWindow';
     searchWindow.className = 'search-window';
     searchWindow.innerHTML = `
-        <div class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
-            <div id="searchResults" class="search-results"></div>
-        </div>
+        <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
+        <div id="searchResults" class="search-results"></div>
     `;
     document.body.appendChild(searchWindow);
 
